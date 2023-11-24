@@ -572,13 +572,25 @@ static size_t _etoa(out_fct_type out, char* buffer, size_t idx, size_t maxlen, d
 #endif  // PRINTF_SUPPORT_EXPONENTIAL
 #endif  // PRINTF_SUPPORT_FLOAT
 
+#ifdef __USE_RTOS__
+#include "FreeRTOS.h"
+#include "semphr.h"
+static xSemaphoreHandle sem_vsnprintf_handle = NULL;
+#endif
 
 // internal vsnprintf
 static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen, const char* format, va_list va)
 {
   unsigned int flags, width, precision, n;
   size_t idx = 0U;
-
+#ifdef __USE_RTOS__
+  if(sem_vsnprintf_handle == NULL){
+      sem_vsnprintf_handle = xSemaphoreCreateBinary();
+      xSemaphoreGive(sem_vsnprintf_handle);
+  }
+  BaseType_t xResult = xSemaphoreTake(sem_vsnprintf_handle, 10000 / portTICK_PERIOD_MS);
+  if(xResult != pdTRUE) return 0;
+#endif
   if (!buffer) {
     // use null output function
     out = _out_null;
@@ -851,7 +863,9 @@ static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen, const
 
   // termination
   out((char)0, buffer, idx < maxlen ? idx : maxlen - 1U, maxlen);
-
+#ifdef __USE_RTOS__
+  xSemaphoreGive(sem_vsnprintf_handle);
+#endif
   // return written chars without terminating \0
   return (int)idx;
 }
@@ -911,4 +925,10 @@ int fctprintf(void (*out)(char character, void* arg), void* arg, const char* for
   const int ret = _vsnprintf(_out_fct, (char*)(uintptr_t)&out_fct_wrap, (size_t)-1, format, va);
   va_end(va);
   return ret;
+}
+
+int vfctprintf(void (*out)(char character, void* arg), void* arg, const char* format, va_list va){
+    const out_fct_wrap_type out_fct_wrap = { out, arg };
+    const int ret = _vsnprintf(_out_fct, (char*)(uintptr_t)&out_fct_wrap, (size_t)-1, format, va);
+    return ret;
 }

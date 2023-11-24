@@ -16,12 +16,6 @@ If memory footprint is really a critical issue, floating point, exponential and 
 When using printf (instead of sprintf/snprintf) you have to provide your own `_putchar()` low level function as console/serial output.
 
 
-## 2020 announcement
-This project is not dead! I just had no time in 2019 for sufficient support, sorry.
-Within the next weeks, I will have a look to all PRs and open issues.  
-Thank you all for supporting this project.
-
-
 ## Highlights and Design Goals
 
 There is a boatload of so called 'tiny' printf implementations around. So why this one?
@@ -192,7 +186,6 @@ Running with the `--wait-for-keypress exit` option waits for the enter key after
 - [turnkeyboard](https://github.com/mpaland/turnkeyboard) uses printf as log and generic tty (formatting) output.
 - printf is part of [embeddedartistry/libc](https://github.com/embeddedartistry/libc), a libc targeted for embedded systems usage.
 - The [Hatchling Platform]( https://github.com/adrian3git/HatchlingPlatform) uses printf.
-
 (Just send me a mail/issue/PR to get *your* project listed here)
 
 
